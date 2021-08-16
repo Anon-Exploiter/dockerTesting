@@ -1,0 +1,29 @@
+name: Run every hour
+
+on: [push, pull_request]
+
+jobs:
+    post:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check out source code
+              uses: actions/checkout@v2
+
+            - name: Set up Python 3.9
+              uses: actions/setup-python@v2
+              with:
+                  python-version: 3.9
+
+            - name: Install dependencies
+              run: |
+                  python -m pip install --upgrade pip
+                  pip install flake8 pylint
+                  if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+            - name: Setup config.json file from secrets
+              run: echo $CREDS_FILE | base64 -d > config.json
+              env:
+                  CREDS_FILE: ${{secrets.CREDS_FILE}}
+
+            - name: Run the script
+              run: python test.py
